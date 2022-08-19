@@ -1,0 +1,112 @@
+app
+
+import logo from './logo.svg';
+import './App.css';
+import Confetti from "react-confetti";
+import {nanoid} from "nanoid";
+import Dice from "./components/Dice"
+import React from "react"
+
+function App() {
+	const [dice,setDice] = React.useState(allNewDice())
+	const [Tenzies, setTenzies] = React.useState(false)
+
+	React.useEffect( ()=>{
+		const allFreeze = dice.every(oldDice => oldDice.freeze)
+		const firstValue = dice[0].value
+		const allValue = dice.every(oldDice => oldDice.value ===firstValue)
+		if(allFreeze && allValue){
+			setTenzies(true);
+			console.log("You won")
+		}
+ 
+		
+	}, dice)
+
+	function generateDice(){
+		return {
+			id:nanoid(),
+			value:Math.ceil(Math.random() * 6),
+			freeze:false
+		}
+	}
+
+	function allNewDice(){
+		const newDice = [];
+		for(let i=0; i<10; i++){
+			newDice.push(generateDice())
+		}
+		return newDice;
+	}
+
+	const listAllDice = dice.map(oldDice => {
+		return (
+			<Dice 
+				key={oldDice.id}
+				freeze = {oldDice.freeze}
+				value ={oldDice.value}
+				stop = {() => stop(oldDice.id)}/>
+		)
+	})
+
+	const rollDice = () => {
+		if(!Tenzies){
+			setDice(oldDice => oldDice.map(dice =>{
+				return dice.freeze 
+				? dice
+				: generateDice()
+			}))
+		}else{
+			setTenzies(false)
+			setDice(allNewDice)
+			
+		}
+		
+		
+	}
+	
+	const stop = (id) => {
+		setDice(oldDice => oldDice.map(dice => { 
+			return dice.id === id 
+			? {...dice, freeze: !dice.freeze}
+			: dice
+		}))
+		console.log(dice)
+	}
+
+	
+
+	return (
+		<main>
+			<h1>Tenzies Game</h1>
+			<p className="instructions">Roll until all dice are the same. Click each die to freeze it at its current value between rolls.</p>
+			<div className='dice-list'>
+				
+				{listAllDice}
+			</div>		
+			<button className='button' onClick={rollDice}>{Tenzies ? "Reset" : "Roll"}</button> 
+			{Tenzies && <Confetti/>}
+		</main>
+	);
+}
+
+export default App;
+
+
+dice
+export default function(props){
+    const style = props.freeze ? {
+        background:"red",
+        color:"#fff"
+    }: {};
+    return (
+        <div 
+            className="dice" 
+            style = {style}
+            onClick = {props.stop}
+            >
+            {props.value}
+        </div>
+    )
+}
+
